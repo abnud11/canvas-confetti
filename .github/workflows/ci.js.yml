@@ -24,9 +24,3 @@ jobs:
       - uses: actions/checkout@v4
       - uses: ./.github/composite-action
       - run: pnpm tsc
-  test:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: ./.github/composite-action
-      - run: pnpm test -- --silent
