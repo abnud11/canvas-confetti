@@ -83,9 +83,7 @@ const getWorker = (function () {
     try {
       worker = new MyWorker() as DecoratedWorker;
     } catch (error) {
-      typeof console !== undefined && typeof console.warn === "function"
-        ? console.warn("🎊 Could not load worker", error)
-        : null;
+      console.warn("🎊 Could not load worker", error);
 
       return null;
     }
@@ -120,14 +118,14 @@ function animate(
   let animationFrame: number | undefined;
   let destroy: (() => void) | undefined;
 
-  const prom = new Promise(function (resolve) {
+  const prom = new Promise<void>(function (resolve) {
     function onDone() {
       animationFrame = destroy = undefined;
       if (size.width && size.height) {
         context.clearRect(0, 0, size.width, size.height);
       }
       done();
-      resolve(undefined);
+      resolve();
     }
 
     function update() {
@@ -156,7 +154,7 @@ function animate(
 
   return {
     addFettis: function (fettis: Physics[]) {
-      animatingFettis = animatingFettis.concat(fettis);
+      animatingFettis = [...animatingFettis, ...fettis];
 
       return prom;
     },
@@ -183,9 +181,7 @@ declare global {
 // Make default export lazy to defer worker creation until called.
 let defaultFire: ReturnType<typeof confettiCannon> | null = null;
 function getDefaultFire() {
-  if (!defaultFire) {
-    defaultFire = confettiCannon(null, { useWorker: true, resize: true });
-  }
+  defaultFire ??= confettiCannon(null, { useWorker: true, resize: true });
   return defaultFire;
 }
 
@@ -212,7 +208,6 @@ export function shapeFromPath(
     let minY = maxSize;
     let maxX = 0;
     let maxY = 0;
-    let width, height;
 
     // do some line skipping... this is faster than checking
     // every pixel and will be mostly still correct
@@ -227,8 +222,8 @@ export function shapeFromPath(
       }
     }
 
-    width = maxX - minX;
-    height = maxY - minY;
+    const width = maxX - minX;
+    const height = maxY - minY;
 
     const maxDesiredSize = 10;
     const scale = Math.min(maxDesiredSize / width, maxDesiredSize / height);
@@ -250,7 +245,18 @@ export function shapeFromPath(
   };
 }
 
-export function shapeFromText(
+function obtainCanvas(width: number, height: number) {
+  let canvas: OffscreenCanvas | HTMLCanvasElement;
+  if (typeof OffscreenCanvas === "undefined") {
+    canvas = document.createElement("canvas");
+    canvas.width = width;
+    canvas.height = height;
+  } else {
+    canvas = new OffscreenCanvas(width, height);
+  }
+  return canvas;
+}
+export async function shapeFromText(
   textData:
     | string
     | { text: string; scalar?: number; fontFamily?: string; color?: string },
@@ -266,17 +272,16 @@ export function shapeFromText(
     text = textData;
   } else {
     text = textData.text;
-    scalar = textData.scalar ? textData.scalar : scalar;
-    fontFamily = textData.fontFamily ? textData.fontFamily : fontFamily;
-    color = textData.color ? textData.color : color;
+    scalar = textData.scalar ?? scalar;
+    fontFamily = textData.fontFamily ?? fontFamily;
+    color = textData.color ?? color;
   }
 
   // all other confetti are 10 pixels,
   // so this pixel size is the de-facto 100% scale confetti
   const fontSize = 10 * scalar;
   const font = "" + fontSize + "px " + fontFamily;
-
-  let canvas = new OffscreenCanvas(fontSize, fontSize);
+  let canvas = obtainCanvas(fontSize, fontSize);
   let context = canvas.getContext("2d")!;
 
   context.font = font;
@@ -294,7 +299,7 @@ export function shapeFromText(
   width += padding + padding;
   height += padding + padding;
 
-  canvas = new OffscreenCanvas(width, height);
+  canvas = obtainCanvas(width, height);
   context = canvas.getContext("2d")!;
   context.font = font;
   context.fillStyle = color;
@@ -305,8 +310,7 @@ export function shapeFromText(
 
   return {
     type: "bitmap",
-    // TODO these probably need to be transfered for workers
-    bitmap: canvas.transferToImageBitmap(),
+    bitmap: await createImageBitmap(canvas),
     matrix: [scale, 0, 0, scale, (-width * scale) / 2, (-height * scale) / 2],
   };
 }

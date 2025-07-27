@@ -25,9 +25,11 @@
     "@eslint/js": "^9.31.0",
     "@stylistic/eslint-plugin": "^5.2.2",
     "@types/node": "22",
+    "browserslist-config-baseline": "^0.4.0",
     "esbuild": "^0.25.8",
     "eslint": "^9.31.0",
     "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-compat": "^6.0.2",
     "eslint-plugin-prettier": "^5.5.3",
     "eslint-plugin-unicorn": "^60.0.0",
     "prettier": "^3.6.2",
@@ -37,5 +39,8 @@
     "vite": "^7.0.6",
     "vite-plugin-dts": "^4.5.4"
   },
+  "browserslist": [
+    "extends browserslist-config-baseline"
+  ],
   "packageManager": "pnpm@10.14.0-0+sha512.2cd47a0cbf5f1d1de7693a88307a0ede5be94e0d3b34853d800ee775efbea0650cb562b77605ec80bc8d925f5cd27c4dfe8bb04d3a0b76090784c664450d32d6"
 }

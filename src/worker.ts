@@ -21,14 +21,14 @@ function animate(
   let animationFrame: number | undefined;
   let destroy: (() => void) | undefined;
 
-  const prom = new Promise(function (resolve) {
+  const prom = new Promise<void>(function (resolve) {
     function onDone() {
       animationFrame = destroy = undefined;
       if (size.width && size.height) {
         context.clearRect(0, 0, size.width, size.height);
       }
       done();
-      resolve(undefined);
+      resolve();
     }
 
     function update() {
@@ -57,7 +57,7 @@ function animate(
 
   return {
     addFettis: function (fettis: Physics[]) {
-      animatingFettis = animatingFettis.concat(fettis);
+      animatingFettis = [...animatingFettis, ...fettis];
 
       return prom;
     },
@@ -168,8 +168,8 @@ function confettiCannon(canvas: HTMLCanvasElement | null) {
 
   return fire;
 }
-var CONFETTI: ReturnType<typeof confettiCannon> | null = null,
-  SIZE: { width?: number; height?: number } = {};
+let CONFETTI: ReturnType<typeof confettiCannon> | null = null;
+const SIZE: { width?: number; height?: number } = {};
 interface CallConfettiMessage {
   data: {
     options: Options;
@@ -196,9 +196,9 @@ type ConfettiMessage =
   | ResetConfettiMessage
   | ResizeConfettiMessage
   | CanvasConfettiMessage;
-globalThis.onmessage = function (message: ConfettiMessage) {
+globalThis.addEventListener("message", (message: ConfettiMessage) => {
   if ("options" in message.data && message.data.options) {
-    CONFETTI?.(message.data.options).then(function () {
+    void CONFETTI?.(message.data.options).then(function () {
       if ((message as CallConfettiMessage).data.callback) {
         postMessage({
           callback: (message as CallConfettiMessage).data.callback,
@@ -215,4 +215,4 @@ globalThis.onmessage = function (message: ConfettiMessage) {
     SIZE.height = message.data.canvas.height;
     CONFETTI = confettiCannon(message.data.canvas);
   }
-};
+});
