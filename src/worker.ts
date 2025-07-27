@@ -1,8 +1,6 @@
 import type { Physics, Options } from "./shared.ts";
 import {
   randomPhysics,
-  setCanvasRectSize,
-  setCanvasWindowSize,
   raf,
   updateFetti,
   prop,
@@ -15,7 +13,6 @@ import {
 function animate(
   canvas: HTMLCanvasElement,
   fettis: Physics[],
-  resizer: (canvas: HTMLCanvasElement) => void,
   size: { width: number | null; height: number | null },
   done: () => void
 ) {
@@ -40,11 +37,6 @@ function animate(
         size.height = canvas.height = SIZE.height!;
       }
 
-      if (!size.width && !size.height) {
-        resizer(canvas);
-        size.width = canvas.width;
-        size.height = canvas.height;
-      }
       if (size.width && size.height) {
         context.clearRect(0, 0, size.width, size.height);
       }
@@ -82,29 +74,9 @@ function animate(
     },
   };
 }
-interface ConfettiOptions {
-  resize?: boolean;
-  disableForReducedMotion?: boolean;
-  zIndex?: number;
-}
-function confettiCannon(
-  canvas: HTMLCanvasElement | null,
-  globalOpts?: ConfettiOptions
-) {
+function confettiCannon(canvas: HTMLCanvasElement | null) {
   const isLibCanvas = !canvas;
-  globalOpts ??= {};
-  var allowResize = globalOpts.resize ?? true;
-  var hasResizeEventRegistered = false;
-  var globalDisableForReducedMotion = prop(
-    globalOpts,
-    "disableForReducedMotion",
-    Boolean
-  );
-  var resizer = isLibCanvas ? setCanvasWindowSize : setCanvasRectSize;
-  var initialized = false;
-  var preferLessMotion =
-    typeof matchMedia === "function" &&
-    matchMedia("(prefers-reduced-motion)").matches;
+
   var animationObj: ReturnType<typeof animate> | null = null;
 
   function fireLocal(
@@ -158,28 +130,15 @@ function confettiCannon(
       return animationObj.addFettis(fettis);
     }
 
-    animationObj = animate(canvas!, fettis, resizer, size, done);
+    animationObj = animate(canvas!, fettis, size, done);
 
     return animationObj.promise;
   }
 
   function fire(options: Options) {
-    var disableForReducedMotion =
-      globalDisableForReducedMotion ||
-      prop(options, "disableForReducedMotion", Boolean);
-
-    if (disableForReducedMotion && preferLessMotion) {
-      return Promise.resolve();
-    }
-
     if (isLibCanvas && animationObj) {
       // use existing canvas from in-progress animation
       canvas = animationObj.canvas;
-    }
-
-    if (allowResize && !initialized) {
-      // initialize the size of a user-supplied canvas
-      resizer(canvas!);
     }
 
     var size: { width: number | null; height: number | null } = {
@@ -187,34 +146,15 @@ function confettiCannon(
       height: canvas!.height,
     };
 
-    initialized = true;
-
-    function onResize() {
-      // don't actually query the size here, since this
-      // can execute frequently and rapidly
-      size.width = size.height = null;
-    }
-
     function done() {
       animationObj = null;
-
-      if (allowResize) {
-        hasResizeEventRegistered = false;
-        global.removeEventListener("resize", onResize);
-      }
 
       if (isLibCanvas && canvas) {
         if (document.body.contains(canvas)) {
           document.body.removeChild(canvas);
         }
         canvas = null;
-        initialized = false;
       }
-    }
-
-    if (allowResize && !hasResizeEventRegistered) {
-      hasResizeEventRegistered = true;
-      global.addEventListener("resize", onResize, false);
     }
 
     return fireLocal(options, size, done);

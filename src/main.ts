@@ -8,8 +8,6 @@ import {
   raf,
   randomInt,
   randomPhysics,
-  setCanvasRectSize,
-  setCanvasWindowSize,
   updateFetti,
   type Options,
   type Physics,
@@ -313,6 +311,17 @@ export function shapeFromText(
     matrix: [scale, 0, 0, scale, (-width * scale) / 2, (-height * scale) / 2],
   };
 }
+
+function setCanvasWindowSize(canvas: HTMLCanvasElement) {
+  canvas.width = document.documentElement.clientWidth;
+  canvas.height = document.documentElement.clientHeight;
+}
+
+function setCanvasRectSize(canvas: HTMLCanvasElement) {
+  var rect = canvas.getBoundingClientRect();
+  canvas.width = rect.width;
+  canvas.height = rect.height;
+}
 interface ConfettiOptions {
   resize?: boolean;
   disableForReducedMotion?: boolean;
@@ -325,7 +334,7 @@ function confettiCannon(
 ) {
   const isLibCanvas = !canvas;
   globalOpts ??= {};
-  var allowResize = globalOpts.resize ?? true;
+  var allowResize = globalOpts.resize ?? false;
   var hasResizeEventRegistered = false;
   var globalDisableForReducedMotion = prop(
     globalOpts,

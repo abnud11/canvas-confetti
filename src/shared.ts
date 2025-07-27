@@ -343,16 +343,6 @@ export function updateFetti(context: CanvasRenderingContext2D, fetti: Physics) {
   return fetti.tick < fetti.totalTicks;
 }
 
-export function setCanvasWindowSize(canvas: HTMLCanvasElement) {
-  canvas.width = document.documentElement.clientWidth;
-  canvas.height = document.documentElement.clientHeight;
-}
-
-export function setCanvasRectSize(canvas: HTMLCanvasElement) {
-  var rect = canvas.getBoundingClientRect();
-  canvas.width = rect.width;
-  canvas.height = rect.height;
-}
 export function onlyPositiveInt(number: number) {
   return number < 0 ? 0 : Math.floor(number);
 }
