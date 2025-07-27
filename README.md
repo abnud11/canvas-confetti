@@ -1,4 +1,4 @@
-This package is a fork of [canvas-confetti](https://github.com/catdad/canvas-confetti). 
+This package is a fork of [canvas-confetti](https://github.com/catdad/canvas-confetti).
 
 The idea came when I used canvas-confetti in a project of mine a long time ago back when canvas-confetti was still maintained.
 I recognized lately that is no longer the case but I didn't like the alternatives as they were too complex and missed a lot of features.
@@ -15,4 +15,12 @@ The breaking changes in this library are two things, first if you still need to 
 
 Second, this library avoids mixing default exports with named exports due to issues with Vite so all exports are named exports, the default export is now named `fireConfetti`.
 
-I hope you enjoy this library, While I didn't publish it yet I intend to do so shortly.
+I hope you enjoy this library, to install it:
+For npm:
+`npm i @abnud11/canvas-confetti`
+For yarn:
+`yarn add @abnud11/canvas-confetti`
+For pnpm:
+`pnpm add @abnud11/canvas-confetti`
+For bun:
+`bun add @abnud11/canvas-confetti`
