@@ -1,4 +1,4 @@
-This package is a fork of [https://github.com/catdad/canvas-confetti](canvas-confetti). 
+This package is a fork of [canvas-confetti](https://github.com/catdad/canvas-confetti). 
 
 The idea came when I used canvas-confetti in a project of mine a long time ago back when canvas-confetti was still maintained.
 I recognized lately that is no longer the case but I didn't like the alternatives as they were too complex and missed a lot of features.
