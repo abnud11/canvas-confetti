@@ -504,7 +504,7 @@ function confettiCannon(
 
   return fire;
 }
-export default function (options: Options) {
+export function fireConfetti(options: Options) {
   return getDefaultFire()(options);
 }
 export const reset = function () {
