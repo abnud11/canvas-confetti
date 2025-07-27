@@ -3,7 +3,7 @@ import {
   randomPhysics,
   raf,
   updateFetti,
-  prop,
+  property,
   onlyPositiveInt,
   colorsToRgb,
   getOrigin,
@@ -14,14 +14,14 @@ function animate(
   canvas: HTMLCanvasElement,
   fettis: Physics[],
   size: { width: number | null; height: number | null },
-  done: () => void
+  done: () => void,
 ) {
-  var animatingFettis = fettis.slice();
-  var context = canvas.getContext("2d")!;
-  var animationFrame: number | undefined;
-  var destroy: (() => void) | undefined;
+  let animatingFettis = [...fettis];
+  const context = canvas.getContext("2d")!;
+  let animationFrame: number | undefined;
+  let destroy: (() => void) | undefined;
 
-  var prom = new Promise(function (resolve) {
+  const prom = new Promise(function (resolve) {
     function onDone() {
       animationFrame = destroy = undefined;
       if (size.width && size.height) {
@@ -44,7 +44,7 @@ function animate(
         return updateFetti(context, fetti);
       });
 
-      if (animatingFettis.length) {
+      if (animatingFettis.length > 0) {
         animationFrame = raf.frame(update);
       } else {
         onDone();
@@ -75,36 +75,36 @@ function animate(
   };
 }
 function confettiCannon(canvas: HTMLCanvasElement | null) {
-  const isLibCanvas = !canvas;
+  const isLibraryCanvas = !canvas;
 
-  var animationObj: ReturnType<typeof animate> | null = null;
+  let animationObject: ReturnType<typeof animate> | null = null;
 
   function fireLocal(
     options: Options,
     size: { width: number | null; height: number | null },
-    done: () => void
+    done: () => void,
   ) {
-    var particleCount = prop(options, "particleCount", onlyPositiveInt);
-    var angle = prop(options, "angle", Number);
-    var spread = prop(options, "spread", Number);
-    var startVelocity = prop(options, "startVelocity", Number);
-    var decay = prop(options, "decay", Number);
-    var gravity = prop(options, "gravity", Number);
-    var drift = prop(options, "drift", Number);
-    var colors = prop(options, "colors", colorsToRgb);
-    var ticks = prop(options, "ticks", Number);
-    var shapes = prop(options, "shapes");
-    var scalar = prop(options, "scalar");
-    var flat = !!prop(options, "flat");
-    var origin = getOrigin(options);
+    const particleCount = property(options, "particleCount", onlyPositiveInt);
+    const angle = property(options, "angle", Number);
+    const spread = property(options, "spread", Number);
+    const startVelocity = property(options, "startVelocity", Number);
+    const decay = property(options, "decay", Number);
+    const gravity = property(options, "gravity", Number);
+    const drift = property(options, "drift", Number);
+    const colors = property(options, "colors", colorsToRgb);
+    const ticks = property(options, "ticks", Number);
+    const shapes = property(options, "shapes");
+    const scalar = property(options, "scalar");
+    const flat = !!property(options, "flat");
+    const origin = getOrigin(options);
 
-    var temp = particleCount;
-    var fettis = [];
+    let temporary = particleCount;
+    const fettis = [];
 
-    var startX = canvas!.width * origin.x;
-    var startY = canvas!.height * origin.y;
+    const startX = canvas!.width * origin.x;
+    const startY = canvas!.height * origin.y;
 
-    while (temp--) {
+    while (temporary--) {
       fettis.push(
         randomPhysics({
           x: startX,
@@ -112,7 +112,7 @@ function confettiCannon(canvas: HTMLCanvasElement | null) {
           angle: angle,
           spread: spread,
           startVelocity: startVelocity,
-          color: colors[temp % colors.length],
+          color: colors[temporary % colors.length],
           shape: shapes[randomInt(0, shapes.length)],
           ticks: ticks,
           decay: decay,
@@ -120,38 +120,38 @@ function confettiCannon(canvas: HTMLCanvasElement | null) {
           drift: drift,
           scalar: scalar,
           flat: flat,
-        })
+        }),
       );
     }
 
     // if we have a previous canvas already animating,
     // add to it
-    if (animationObj) {
-      return animationObj.addFettis(fettis);
+    if (animationObject) {
+      return animationObject.addFettis(fettis);
     }
 
-    animationObj = animate(canvas!, fettis, size, done);
+    animationObject = animate(canvas!, fettis, size, done);
 
-    return animationObj.promise;
+    return animationObject.promise;
   }
 
   function fire(options: Options) {
-    if (isLibCanvas && animationObj) {
+    if (isLibraryCanvas && animationObject) {
       // use existing canvas from in-progress animation
-      canvas = animationObj.canvas;
+      canvas = animationObject.canvas;
     }
 
-    var size: { width: number | null; height: number | null } = {
+    const size: { width: number | null; height: number | null } = {
       width: canvas!.width,
       height: canvas!.height,
     };
 
     function done() {
-      animationObj = null;
+      animationObject = null;
 
-      if (isLibCanvas && canvas) {
+      if (isLibraryCanvas && canvas) {
         if (document.body.contains(canvas)) {
-          document.body.removeChild(canvas);
+          canvas.remove();
         }
         canvas = null;
       }
@@ -161,8 +161,8 @@ function confettiCannon(canvas: HTMLCanvasElement | null) {
   }
 
   fire.reset = function () {
-    if (animationObj) {
-      animationObj.reset();
+    if (animationObject) {
+      animationObject.reset();
     }
   };
 
@@ -196,21 +196,23 @@ type ConfettiMessage =
   | ResetConfettiMessage
   | ResizeConfettiMessage
   | CanvasConfettiMessage;
-self.onmessage = function (msg: ConfettiMessage) {
-  if ("options" in msg.data && msg.data.options) {
-    CONFETTI?.(msg.data.options).then(function () {
-      if ((msg as CallConfettiMessage).data.callback) {
-        postMessage({ callback: (msg as CallConfettiMessage).data.callback });
+globalThis.onmessage = function (message: ConfettiMessage) {
+  if ("options" in message.data && message.data.options) {
+    CONFETTI?.(message.data.options).then(function () {
+      if ((message as CallConfettiMessage).data.callback) {
+        postMessage({
+          callback: (message as CallConfettiMessage).data.callback,
+        });
       }
     });
-  } else if ("reset" in msg.data && msg.data.reset) {
+  } else if ("reset" in message.data && message.data.reset) {
     CONFETTI?.reset();
-  } else if ("resize" in msg.data && msg.data.resize) {
-    SIZE.width = msg.data.resize.width;
-    SIZE.height = msg.data.resize.height;
-  } else if ("canvas" in msg.data && msg.data.canvas) {
-    SIZE.width = msg.data.canvas.width;
-    SIZE.height = msg.data.canvas.height;
-    CONFETTI = confettiCannon(msg.data.canvas);
+  } else if ("resize" in message.data && message.data.resize) {
+    SIZE.width = message.data.resize.width;
+    SIZE.height = message.data.resize.height;
+  } else if ("canvas" in message.data && message.data.canvas) {
+    SIZE.width = message.data.canvas.width;
+    SIZE.height = message.data.canvas.height;
+    CONFETTI = confettiCannon(message.data.canvas);
   }
 };

@@ -4,7 +4,7 @@ import {
   colorsToRgb,
   getOrigin,
   onlyPositiveInt,
-  prop,
+  property,
   raf,
   randomInt,
   randomPhysics,
@@ -19,17 +19,17 @@ type DecoratedWorker = Worker & {
   fire: (options: Options, done: () => void) => Promise<void>;
   reset: () => void;
 };
-var getWorker = (function () {
-  var worker: DecoratedWorker | undefined;
-  var prom: Promise<void> | undefined;
-  var resolves: Record<string, () => void> = {};
+const getWorker = (function () {
+  let worker: DecoratedWorker | undefined;
+  let prom: Promise<void> | undefined;
+  const resolves: Record<string, () => void> = {};
 
   function decorate(worker: DecoratedWorker) {
     function execute(options: Options, callback: string | null) {
       worker.postMessage({ options: options || {}, callback: callback });
     }
     worker.init = function initWorker(canvas) {
-      var offscreen = canvas.transferControlToOffscreen();
+      const offscreen = canvas.transferControlToOffscreen();
       worker.postMessage({ canvas: offscreen }, [offscreen]);
     };
 
@@ -39,11 +39,11 @@ var getWorker = (function () {
         return prom;
       }
 
-      var id = Math.random().toString(36).slice(2);
+      const id = Math.random().toString(36).slice(2);
 
       prom = new Promise(function (resolve) {
-        function workerDone(msg: { data: { callback: string } }) {
-          if (msg.data.callback !== id) {
+        function workerDone(message: { data: { callback: string } }) {
+          if (message.data.callback !== id) {
             return;
           }
 
@@ -53,7 +53,7 @@ var getWorker = (function () {
           prom = undefined;
 
           done();
-          resolve(undefined);
+          resolve();
         }
 
         worker.addEventListener("message", workerDone);
@@ -68,7 +68,7 @@ var getWorker = (function () {
     worker.reset = function resetWorker() {
       worker.postMessage({ reset: true });
 
-      for (var id in resolves) {
+      for (const id in resolves) {
         resolves[id]();
         delete resolves[id];
       }
@@ -82,10 +82,9 @@ var getWorker = (function () {
 
     try {
       worker = new MyWorker() as DecoratedWorker;
-    } catch (e) {
-      // eslint-disable-next-line no-console
+    } catch (error) {
       typeof console !== undefined && typeof console.warn === "function"
-        ? console.warn("🎊 Could not load worker", e)
+        ? console.warn("🎊 Could not load worker", error)
         : null;
 
       return null;
@@ -98,7 +97,7 @@ var getWorker = (function () {
 })();
 
 function getCanvas(zIndex: number) {
-  var canvas = document.createElement("canvas");
+  const canvas = document.createElement("canvas");
 
   canvas.style.position = "fixed";
   canvas.style.top = "0px";
@@ -114,14 +113,14 @@ function animate(
   fettis: Physics[],
   resizer: (canvas: HTMLCanvasElement) => void,
   size: { width: number | null; height: number | null },
-  done: () => void
+  done: () => void,
 ) {
-  var animatingFettis = fettis.slice();
-  var context = canvas.getContext("2d")!;
-  var animationFrame: number | undefined;
-  var destroy: (() => void) | undefined;
+  let animatingFettis = [...fettis];
+  const context = canvas.getContext("2d")!;
+  let animationFrame: number | undefined;
+  let destroy: (() => void) | undefined;
 
-  var prom = new Promise(function (resolve) {
+  const prom = new Promise(function (resolve) {
     function onDone() {
       animationFrame = destroy = undefined;
       if (size.width && size.height) {
@@ -144,7 +143,7 @@ function animate(
         return updateFetti(context, fetti);
       });
 
-      if (animatingFettis.length) {
+      if (animatingFettis.length > 0) {
         animationFrame = raf.frame(update);
       } else {
         onDone();
@@ -182,7 +181,7 @@ declare global {
 }
 
 // Make default export lazy to defer worker creation until called.
-var defaultFire: ReturnType<typeof confettiCannon> | null = null;
+let defaultFire: ReturnType<typeof confettiCannon> | null = null;
 function getDefaultFire() {
   if (!defaultFire) {
     defaultFire = confettiCannon(null, { useWorker: true, resize: true });
@@ -191,9 +190,9 @@ function getDefaultFire() {
 }
 
 export function shapeFromPath(
-  pathData: string | { path: string; matrix?: string | number[] }
+  pathData: string | { path: string; matrix?: string | number[] },
 ) {
-  var path, matrix;
+  let path, matrix;
 
   if (typeof pathData === "string") {
     path = pathData;
@@ -202,24 +201,24 @@ export function shapeFromPath(
     matrix = pathData.matrix;
   }
 
-  var path2d = new Path2D(path);
-  var tempCanvas = document.createElement("canvas");
-  var tempCtx = tempCanvas.getContext("2d")!;
+  const path2d = new Path2D(path);
+  const temporaryCanvas = document.createElement("canvas");
+  const temporaryContext = temporaryCanvas.getContext("2d")!;
 
   if (!matrix) {
     // attempt to figure out the width of the path, up to 1000x1000
-    var maxSize = 1000;
-    var minX = maxSize;
-    var minY = maxSize;
-    var maxX = 0;
-    var maxY = 0;
-    var width, height;
+    const maxSize = 1000;
+    let minX = maxSize;
+    let minY = maxSize;
+    let maxX = 0;
+    let maxY = 0;
+    let width, height;
 
     // do some line skipping... this is faster than checking
     // every pixel and will be mostly still correct
-    for (var x = 0; x < maxSize; x += 2) {
-      for (var y = 0; y < maxSize; y += 2) {
-        if (tempCtx.isPointInPath(path2d, x, y, "nonzero")) {
+    for (let x = 0; x < maxSize; x += 2) {
+      for (let y = 0; y < maxSize; y += 2) {
+        if (temporaryContext.isPointInPath(path2d, x, y, "nonzero")) {
           minX = Math.min(minX, x);
           minY = Math.min(minY, y);
           maxX = Math.max(maxX, x);
@@ -231,8 +230,8 @@ export function shapeFromPath(
     width = maxX - minX;
     height = maxY - minY;
 
-    var maxDesiredSize = 10;
-    var scale = Math.min(maxDesiredSize / width, maxDesiredSize / height);
+    const maxDesiredSize = 10;
+    const scale = Math.min(maxDesiredSize / width, maxDesiredSize / height);
 
     matrix = [
       scale,
@@ -254,9 +253,9 @@ export function shapeFromPath(
 export function shapeFromText(
   textData:
     | string
-    | { text: string; scalar?: number; fontFamily?: string; color?: string }
+    | { text: string; scalar?: number; fontFamily?: string; color?: string },
 ) {
-  var text,
+  let text,
     scalar = 1,
     color = "#000000",
     // see https://nolanlawson.com/2022/04/08/the-struggle-of-using-native-emoji-on-the-web/
@@ -274,35 +273,35 @@ export function shapeFromText(
 
   // all other confetti are 10 pixels,
   // so this pixel size is the de-facto 100% scale confetti
-  var fontSize = 10 * scalar;
-  var font = "" + fontSize + "px " + fontFamily;
+  const fontSize = 10 * scalar;
+  const font = "" + fontSize + "px " + fontFamily;
 
-  var canvas = new OffscreenCanvas(fontSize, fontSize);
-  var ctx = canvas.getContext("2d")!;
+  let canvas = new OffscreenCanvas(fontSize, fontSize);
+  let context = canvas.getContext("2d")!;
 
-  ctx.font = font;
-  var size = ctx.measureText(text);
-  var width = Math.ceil(
-    size.actualBoundingBoxRight + size.actualBoundingBoxLeft
+  context.font = font;
+  const size = context.measureText(text);
+  let width = Math.ceil(
+    size.actualBoundingBoxRight + size.actualBoundingBoxLeft,
   );
-  var height = Math.ceil(
-    size.actualBoundingBoxAscent + size.actualBoundingBoxDescent
+  let height = Math.ceil(
+    size.actualBoundingBoxAscent + size.actualBoundingBoxDescent,
   );
 
-  var padding = 2;
-  var x = size.actualBoundingBoxLeft + padding;
-  var y = size.actualBoundingBoxAscent + padding;
+  const padding = 2;
+  const x = size.actualBoundingBoxLeft + padding;
+  const y = size.actualBoundingBoxAscent + padding;
   width += padding + padding;
   height += padding + padding;
 
   canvas = new OffscreenCanvas(width, height);
-  ctx = canvas.getContext("2d")!;
-  ctx.font = font;
-  ctx.fillStyle = color;
+  context = canvas.getContext("2d")!;
+  context.font = font;
+  context.fillStyle = color;
 
-  ctx.fillText(text, x, y);
+  context.fillText(text, x, y);
 
-  var scale = 1 / scalar;
+  const scale = 1 / scalar;
 
   return {
     type: "bitmap",
@@ -318,7 +317,7 @@ function setCanvasWindowSize(canvas: HTMLCanvasElement) {
 }
 
 function setCanvasRectSize(canvas: HTMLCanvasElement) {
-  var rect = canvas.getBoundingClientRect();
+  const rect = canvas.getBoundingClientRect();
   canvas.width = rect.width;
   canvas.height = rect.height;
 }
@@ -330,52 +329,52 @@ interface ConfettiOptions {
 }
 function confettiCannon(
   canvas: HTMLCanvasElement | null,
-  globalOpts?: ConfettiOptions
+  globalOptions?: ConfettiOptions,
 ) {
-  const isLibCanvas = !canvas;
-  globalOpts ??= {};
-  var allowResize = globalOpts.resize ?? false;
-  var hasResizeEventRegistered = false;
-  var globalDisableForReducedMotion = prop(
-    globalOpts,
+  const isLibraryCanvas = !canvas;
+  globalOptions ??= {};
+  const allowResize = globalOptions.resize ?? false;
+  let hasResizeEventRegistered = false;
+  const globalDisableForReducedMotion = property(
+    globalOptions,
     "disableForReducedMotion",
-    Boolean
+    Boolean,
   );
-  var shouldUseWorker = globalOpts.useWorker ?? true;
-  var worker = shouldUseWorker ? getWorker() : null;
-  var resizer = isLibCanvas ? setCanvasWindowSize : setCanvasRectSize;
-  var initialized = canvas && worker ? !!canvas.__confetti_initialized : false;
-  var preferLessMotion =
+  const shouldUseWorker = globalOptions.useWorker ?? true;
+  const worker = shouldUseWorker ? getWorker() : null;
+  const resizer = isLibraryCanvas ? setCanvasWindowSize : setCanvasRectSize;
+  let initialized = canvas && worker ? !!canvas.__confetti_initialized : false;
+  const preferLessMotion =
     typeof matchMedia === "function" &&
     matchMedia("(prefers-reduced-motion)").matches;
-  var animationObj: ReturnType<typeof animate> | null = null;
+  let animationObject: ReturnType<typeof animate> | null = null;
 
   function fireLocal(
     options: Options,
     size: { width: number | null; height: number | null },
-    done: () => void
+    done: () => void,
   ) {
-    var particleCount = prop(options, "particleCount", onlyPositiveInt);
-    var angle = prop(options, "angle", Number);
-    var spread = prop(options, "spread", Number);
-    var startVelocity = prop(options, "startVelocity", Number);
-    var decay = prop(options, "decay", Number);
-    var gravity = prop(options, "gravity", Number);
-    var drift = prop(options, "drift", Number);
-    var colors = prop(options, "colors", colorsToRgb);
-    var ticks = prop(options, "ticks", Number);
-    var shapes = prop(options, "shapes");
-    var scalar = prop(options, "scalar");
-    var flat = !!prop(options, "flat");
-    var origin = getOrigin(options);
+    const particleCount = property(options, "particleCount", onlyPositiveInt);
+    const angle = property(options, "angle", Number);
+    const spread = property(options, "spread", Number);
+    const startVelocity = property(options, "startVelocity", Number);
+    const decay = property(options, "decay", Number);
+    const gravity = property(options, "gravity", Number);
+    const drift = property(options, "drift", Number);
+    const colors = property(options, "colors", colorsToRgb);
+    const ticks = property(options, "ticks", Number);
+    const shapes = property(options, "shapes");
+    const scalar = property(options, "scalar");
+    const flat = !!property(options, "flat");
+    const origin = getOrigin(options);
 
-    var temp = particleCount;
-    var fettis = [];
+    let temporary = particleCount;
+    const fettis = [];
 
-    var startX = canvas!.width * origin.x;
-    var startY = canvas!.height * origin.y;
+    const startX = canvas!.width * origin.x;
+    const startY = canvas!.height * origin.y;
 
-    while (temp--) {
+    while (temporary--) {
       fettis.push(
         randomPhysics({
           x: startX,
@@ -383,7 +382,7 @@ function confettiCannon(
           angle: angle,
           spread: spread,
           startVelocity: startVelocity,
-          color: colors[temp % colors.length],
+          color: colors[temporary % colors.length],
           shape: shapes[randomInt(0, shapes.length)],
           ticks: ticks,
           decay: decay,
@@ -391,38 +390,38 @@ function confettiCannon(
           drift: drift,
           scalar: scalar,
           flat: flat,
-        })
+        }),
       );
     }
 
     // if we have a previous canvas already animating,
     // add to it
-    if (animationObj) {
-      return animationObj.addFettis(fettis);
+    if (animationObject) {
+      return animationObject.addFettis(fettis);
     }
 
-    animationObj = animate(canvas!, fettis, resizer, size, done);
+    animationObject = animate(canvas!, fettis, resizer, size, done);
 
-    return animationObj.promise;
+    return animationObject.promise;
   }
 
   function fire(options: Options) {
-    var disableForReducedMotion =
+    const disableForReducedMotion =
       globalDisableForReducedMotion ||
-      prop(options, "disableForReducedMotion", Boolean);
-    var zIndex = prop(options, "zIndex", Number);
+      property(options, "disableForReducedMotion", Boolean);
+    const zIndex = property(options, "zIndex", Number);
 
     if (disableForReducedMotion && preferLessMotion) {
       return Promise.resolve();
     }
 
-    if (isLibCanvas && animationObj) {
+    if (isLibraryCanvas && animationObject) {
       // use existing canvas from in-progress animation
-      canvas = animationObj.canvas;
-    } else if (isLibCanvas && !canvas) {
+      canvas = animationObject.canvas;
+    } else if (isLibraryCanvas && !canvas) {
       // create and initialize a new canvas
       canvas = getCanvas(zIndex);
-      document.body.appendChild(canvas);
+      document.body.append(canvas);
     }
 
     if (allowResize && !initialized) {
@@ -430,7 +429,7 @@ function confettiCannon(
       resizer(canvas!);
     }
 
-    var size: { width: number | null; height: number | null } = {
+    const size: { width: number | null; height: number | null } = {
       width: canvas!.width,
       height: canvas!.height,
     };
@@ -448,20 +447,20 @@ function confettiCannon(
     function onResize() {
       if (worker) {
         // TODO this really shouldn't be immediate, because it is expensive
-        var obj = {
+        const object = {
           getBoundingClientRect: function () {
-            if (!isLibCanvas) {
+            if (!isLibraryCanvas) {
               return canvas!.getBoundingClientRect();
             }
           },
         } as HTMLCanvasElement;
 
-        resizer(obj);
+        resizer(object);
 
         worker.postMessage({
           resize: {
-            width: obj.width,
-            height: obj.height,
+            width: object.width,
+            height: object.height,
           },
         });
         return;
@@ -473,16 +472,16 @@ function confettiCannon(
     }
 
     function done() {
-      animationObj = null;
+      animationObject = null;
 
       if (allowResize) {
         hasResizeEventRegistered = false;
         globalThis.removeEventListener("resize", onResize);
       }
 
-      if (isLibCanvas && canvas) {
+      if (isLibraryCanvas && canvas) {
         if (document.body.contains(canvas)) {
-          document.body.removeChild(canvas);
+          canvas.remove();
         }
         canvas = null;
         initialized = false;
@@ -506,8 +505,8 @@ function confettiCannon(
       worker.reset();
     }
 
-    if (animationObj) {
-      animationObj.reset();
+    if (animationObject) {
+      animationObject.reset();
     }
   };
 

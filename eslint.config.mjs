@@ -9,7 +9,17 @@ export default tseslint.config(
   ...tseslint.configs.stylistic,
   ...tseslint.configs.recommendedTypeChecked,
   ...tseslint.configs.stylisticTypeChecked,
+  {
+    languageOptions: {
+      parserOptions: {
+        project: true,
+      },
+    },
+  },
   unicorn.configs.recommended,
   stylistic.configs.recommended,
-  prettierPluginRecommended
+  {
+    "unicorn/no-null": "off",
+  },
+  prettierPluginRecommended,
 );
