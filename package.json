@@ -16,7 +16,7 @@
   },
   "scripts": {
     "dev": "vite",
-    "build": "rimraf dist && vite build",
+    "build": "rimraf dist && vite build && esbuild --minify dist/canvas-confetti.mjs --outfile=dist/canvas-confetti.mjs --allow-overwrite --format=esm --target=esnext",
     "preview": "vite preview",
     "lint": "eslint src --ext .ts,.js",
     "type:check": "tsc"
@@ -25,6 +25,7 @@
     "@eslint/js": "^9.31.0",
     "@stylistic/eslint-plugin": "^5.2.2",
     "@types/node": "22",
+    "esbuild": "^0.25.8",
     "eslint": "^9.31.0",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-prettier": "^5.5.3",
