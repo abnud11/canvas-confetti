@@ -468,7 +468,7 @@ function confettiCannon(
 
       if (allowResize) {
         hasResizeEventRegistered = false;
-        global.removeEventListener("resize", onResize);
+        globalThis.removeEventListener("resize", onResize);
       }
 
       if (isLibCanvas && canvas) {
@@ -482,7 +482,7 @@ function confettiCannon(
 
     if (allowResize && !hasResizeEventRegistered) {
       hasResizeEventRegistered = true;
-      global.addEventListener("resize", onResize, false);
+      globalThis.addEventListener("resize", onResize, false);
     }
 
     if (worker) {
