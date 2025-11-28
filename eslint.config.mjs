@@ -4,7 +4,9 @@ import tseslint from "typescript-eslint";
 import stylistic from "@stylistic/eslint-plugin";
 import unicorn from "eslint-plugin-unicorn";
 import compat from "eslint-plugin-compat";
-export default tseslint.config(
+import { defineConfig } from "eslint/config";
+
+export default defineConfig(
   eslint.configs.recommended,
   ...tseslint.configs.recommended,
   ...tseslint.configs.stylistic,
