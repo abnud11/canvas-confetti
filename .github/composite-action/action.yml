@@ -3,7 +3,7 @@ inputs:
   node-version:
     description: 'Who to greet'
     required: true
-    default: 22.x
+    default: 24.x
 runs:
   using: 'composite'
   steps:
@@ -11,7 +11,7 @@ runs:
       with:
         run_install: false
     - name: Use Node.js ${{ inputs.node-version }}
-      uses: actions/setup-node@v4
+      uses: actions/setup-node@v6
       with:
         node-version: ${{ inputs.node-version }}
         cache: 'pnpm'

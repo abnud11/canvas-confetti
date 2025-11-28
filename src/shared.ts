@@ -328,7 +328,11 @@ export function colorsToRgb(colors: number[] | string[]) {
   return colors.map((element) => hexToRgb(element));
 }
 export function getOrigin(options: Options) {
-  const origin = property(options, "origin", Object);
+  const origin = property<"origin", { x: number; y: number }>(
+    options,
+    "origin",
+    Object,
+  );
   origin.x = property(origin, "x", Number);
   origin.y = property(origin, "y", Number);
 
