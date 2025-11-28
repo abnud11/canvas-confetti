@@ -7,13 +7,13 @@ This is why I chose to fork the package and modernize it, the differences I made
 
 - Remove support for old browsers that don't support Web Workers, Web workers are pretty much baseline now.
 - Use modern tools like vite for bundling, eslint 9 with better linting config, and prettier for formatting.
-- Upgraded CI to Node.js 22
+- Upgraded CI to Node.js 24 along with Github Actions versions
 - Separate web worker code from the main code
 - Export both esm and cjs outputs
 
 The breaking changes in this library are two things, first if you still need to support browsers that don't have Web Workers, you'll need to use the original library.
 
-Second, this library avoids mixing default exports with named exports due to issues with Vite so all exports are named exports, the default export is now named `fireConfetti`.
+Second, this library avoids mixing default exports with named exports due to issues with Vite so all exports are named exports, the default export is now a named `fireConfetti` export.
 
 I hope you enjoy this library, to install it:
 For npm:
